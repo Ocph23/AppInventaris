@@ -1,0 +1,38 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+
+version: '3.4'
+
+networks:
+  dockerapi-dev:
+    driver: bridge 
+
+services:
+  appinventaris:
+    image: appinventaris
+    build:
+      context: .
+      dockerfile: AppInventaris/Dockerfile
+    ports:
+      - 5079:5079   
+    environment:
+      DB_CONNECTION_STRING: "host=postgres_image;port=5432;database=appinventarisdb;username=appinventaris;password=appinventaris"
+    networks:
+      - dockerapi-dev  
+  
+  postgres_image:
+    image: postgres:latest
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+      - ./dbscripts/seed.sql :/docker-entrypoint-initdb.d/seed.sql
+    environment:
+      POSTGRES_USER: "appinventaris"
+      POSTGRES_PASSWORD: "appinventaris"
+      POSTGRES_DB: "appinventarisdb"
+    networks:
+      - dockerapi-dev
+volumes:
+  db_volume:

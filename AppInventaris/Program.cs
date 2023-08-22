@@ -18,9 +18,11 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// var connectionString =
+//     builder.Configuration.GetConnectionString("DefaultConnection")
+//     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -30,16 +32,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
     .AddDefaultUI();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddScoped<AuthenticationStateProvider,RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 builder.Services.AddBlazorStrap();
- builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredLocalStorage();
 
-builder.Services.AddScoped<ILokasiService,LokasiService>();
-builder.Services.AddScoped<IBarangService,BarangService>();
-builder.Services.AddScoped<IKategoriService,KategoriService>();
-builder.Services.AddScoped<IItemBarangService,ItemBarangService>();
+builder.Services.AddScoped<ILokasiService, LokasiService>();
+builder.Services.AddScoped<IBarangService, BarangService>();
+builder.Services.AddScoped<IKategoriService, KategoriService>();
+builder.Services.AddScoped<IItemBarangService, ItemBarangService>();
 
 
 
@@ -49,22 +51,25 @@ using (var scope = app.Services.CreateScope())
 {
     var dbcontext = scope.ServiceProvider.GetService<ApplicationDbContext>();
     dbcontext.Database.EnsureCreated();
-    
+
     var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
-    
-    if(!dbcontext.Roles.Any()){
-       await roleManager.CreateAsync(new IdentityRole("Admin"));
-       await roleManager.CreateAsync(new IdentityRole("Pimpinan"));
-       await roleManager.CreateAsync(new IdentityRole("Penilai"));
+
+    if (!dbcontext.Roles.Any())
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+        await roleManager.CreateAsync(new IdentityRole("Pimpinan"));
+        await roleManager.CreateAsync(new IdentityRole("Penilai"));
     }
 
-    if(!dbcontext.Users.Any()){
+    if (!dbcontext.Users.Any())
+    {
         var user = new ApplicationUser("admin@gmail.com");
-        var result = await userManager.CreateAsync(user,"Password@123");
-        if(result.Succeeded){
-           await userManager.AddToRoleAsync(user,"Admin");
-        }  
+        var result = await userManager.CreateAsync(user, "Password@123");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
     }
 }
 

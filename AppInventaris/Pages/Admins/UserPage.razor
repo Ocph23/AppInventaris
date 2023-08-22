@@ -6,7 +6,7 @@
 
 
 <div style="display: flex;justify-content:space-between">
-    <BSLabel><h3>Data Lokasi</h3></BSLabel>
+    <BSLabel><h3>Data RegisterModel</h3></BSLabel>
     <BSButton style="height: 35px;" Size="Size.Small" Target="editmodal" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
@@ -14,6 +14,9 @@
         <BSTR>
             <BSTD>#</BSTD>
             <BSTD>Nama</BSTD>
+            <BSTD>Email</BSTD>
+            <BSTD>Jabatan</BSTD>
+            <BSTD>Alamat</BSTD>
             <BSTD>Deskripsi/Keterangan</BSTD>
             <BSTD style="width: 120px;"></BSTD>
         </BSTR>
@@ -44,17 +47,22 @@
     <Header>User</Header>
     <Content>
         <BSForm Model="model" OnValidSubmit="SaveAction">
-            <FluentValidator TValidator="LokasiValidator" />
+            <FluentValidator TValidator="RegisterModelValidator" />
             <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Nama" MarginBottom="Margins.Medium" />
             <ValidationMessage For="@(() => model.Nama)" />
-            <BSInput InputType="InputType.TextArea" placeholder="Jabatan" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
+
+            <BSInput InputType="InputType.Text" placeholder="Email" @bind-Value="model.Email" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Email)" />
+
+            <BSInput InputType="InputType.Text" placeholder="Jabatan" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
             <ValidationMessage For="@(() => model.Jabatan)" />
 
-            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Lokasi" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Jabatan)" />
+            <BSInput InputType="InputType.TextArea" placeholder="Alamat" @bind-Value="model.Alamat" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Alamat)" />
 
-            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Lokasi" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Jabatan)" />
+          
+            <BSInput InputType="InputType.Password" placeholder="Password" @bind-Value="password" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => password)" />
 
             <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
             <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
@@ -67,30 +75,30 @@
 <Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
 
 
-@inject ILokasiService lokasiService
+@inject IRegisterModelService RegisterModelService
 @inject IBlazorStrap _blazorStrap
 
 @code {
 
     Dialog dialog;
     BSModal modal;
-    ICollection<Lokasi> datas { get; set; }
+    ICollection<RegisterModel> datas { get; set; }
 
-    ApplicationUser model = new ApplicationUser();
+    RegisterModel model = new RegisterModel();
 
     protected override async Task OnInitializedAsync()
     {
-        datas = (await lokasiService.Get()).ToList();
+        datas = (await RegisterModelService.Get()).ToList();
     }
 
 
-    async Task EditAction(Lokasi data)
+    async Task EditAction(RegisterModel data)
     {
         model = data;
         await modal.ShowAsync();
     }
 
-    async Task DeleteAction(Lokasi data)
+    async Task DeleteAction(RegisterModel data)
     {
         model = data;
         dialog.Title = "Delete";
@@ -106,7 +114,7 @@
         {
             try
             {
-                var deleted = await lokasiService.Delete(model.Id);
+                var deleted = await RegisterModelService.Delete(model.Id);
                 if (deleted)
                 {
                     datas.Remove(model);
@@ -131,16 +139,15 @@
     {
         try
         {
-
-            if (model.Id <= 0)
+            if (string.IsNullOrEmpty(model.Id))
             {
-                var result = await lokasiService.Post(model);
-                ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
-                datas.Add(result);
+                //var result = await RegisterModelService.Post(model);
+                //ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
+                //datas.Add(result);
             }
             else
             {
-                var updated = await lokasiService.Put(model.Id, model);
+               // var updated = await RegisterModelService.Put(model.Id, model);
             }
             await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
             await modal.HideAsync();
@@ -152,9 +159,9 @@
         }
     }
 
-    public class LokasiValidator : AbstractValidator<Lokasi>
+    public class RegisterModelValidator : AbstractValidator<RegisterModel>
     {
-        public LokasiValidator()
+        public RegisterModelValidator()
         {
             RuleFor(customer => customer.Name).NotEmpty().MaximumLength(100);
             RuleFor(customer => customer.Description).NotEmpty();
