@@ -1,0 +1,70 @@
+﻿<nav class="nav">
+    <div>
+        <BSLink href="/admin" class="nav_logo"> <i class='bx bx-layer nav_logo-icon'></i> <span class="nav_logo-name">BBBootstrap</span> </BSLink>
+
+        <div class="nav_list"> 
+            <BSLink href="/admin/kategori" class="nav_link"> <i class='bx bx-category nav_icon'></i> <span class="nav_name">Kategori</span> </BSLink>
+            <BSLink href="/admin/lokasi" class="nav_link"> <i class='bx bx-location-plus nav_icon'></i> <span class="nav_name">Lokasi</span> </BSLink>
+            <BSLink href="/admin/barang" class="nav_link"> <i class='bx bx-box nav_icon'></i> <span class="nav_name">Barang</span> </BSLink>
+            <BSLink href="/admin/inventaris" class="nav_link"> <i class='bx bx-list-ul nav_icon'></i> <span class="nav_name">Inventaris</span> </BSLink>
+        </div>
+    </div> 
+    <div>
+    <BSLink Target="theme" href="#" class="nav_link"> <i class='bx bx-color-fill nav_icon'></i> 
+    <span class="nav_name">Themes</span> </BSLink>
+    <BSButton  class="nav_link"> <i class='bx bx-log-out nav_icon'></i> <span class="nav_name">SignOut</span> </BSButton>
+    </div>
+
+</nav>
+
+
+<BSModal @ref="modalx" Size="Size.Small" IsCentered="true" DataId="theme">
+    <Header>Themes</Header>
+    <Content>
+     <BSDropdown style="width: 100%;">
+        <Toggler>
+            <BSToggle IsButton="true" Color="BSColor.Secondary">@Selected</BSToggle>
+            </Toggler>
+        <Content>
+            @foreach (var item in _themes)
+            {
+                <BSDropdownItem style="width: 100%;" OnClick="@(()=>SelectedChanged(item))">@item</BSDropdownItem>
+            }
+        </Content>
+    </BSDropdown>
+    </Content>
+  
+</BSModal>
+
+@inject IBlazorStrap _blazorStrap
+@inject Blazored.LocalStorage.ILocalStorageService  localStorage
+
+@code{
+BSModal modalx;
+private string? Selected { get; set; }
+    private List<string> _themes = new List<string>();
+ protected override async Task OnAfterRenderAsync(bool firstrun)
+    {
+        if (firstrun)
+        {
+            Selected = await localStorage.GetItemAsync<string>("theme");
+            if(string.IsNullOrEmpty(Selected)){
+                Selected ="Bootstrap";
+                await localStorage.SetItemAsync("theme", Selected);
+            }
+            await _blazorStrap.SetBootstrapCss(Selected, "5.1.3");
+        }
+    }
+    private async Task SelectedChanged(string value)
+    {
+        Selected = value;
+        await localStorage.SetItemAsync("theme", Selected);
+        await _blazorStrap.SetBootstrapCss(value, "5.1.3");
+    }
+     protected override void OnInitialized()
+    {
+        _themes = Enum.GetNames(typeof(Theme)).ToList();
+
+    }
+
+}

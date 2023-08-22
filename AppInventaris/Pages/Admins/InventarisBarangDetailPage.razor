@@ -1,0 +1,204 @@
+@layout AdminLayout
+@page "/admin/inventaris/{id:int}"
+
+@using BlazorStrap.Extensions.FluentValidation
+@using global::FluentValidation
+
+<div style="display: flex;justify-content:space-between">
+    <BSLabel><h3>Data Gambar</h3></BSLabel>
+
+
+</div>
+
+@if (model == null)
+{
+    <label> Loading ....!</label>
+
+}
+else
+{
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <BSLabel>Kode</BSLabel>
+                <BSInput IsDisabled="true" InputType="InputType.Text" @bind-Value="model.Kode" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Barang</BSLabel>
+                <BSInput IsDisabled="true" InputType="InputType.Text" @bind-Value="model.Barang.Name" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <BSLabel>Lokasi</BSLabel>
+                <BSInput IsDisabled="true" InputType="InputType.Text" @bind-Value="model.Lokasi.Name" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Kondisi</BSLabel>
+                <BSInput IsDisabled="true" d="true" InputType="InputType.Text" Value="model.Kondisi.EnumToTitleCase()" />
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-start my-2" style="display:flex; justify-content:space-between">
+                    <h4>Galeri</h4>
+                    <div class="mb-3">
+                        <BSButton style="height: 35px;" Size="Size.Small"
+                                  OnClick="AddImage" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
+                        <BSInputFile id="addgambar" multiple="multiple" hidden IsRequired="true"
+                                     accept="image/png, image/gif, image/jpeg"
+                                     ValidWhen="@(()=>true)"
+                                     OnChange="OnFileChange" />
+                    </div>
+                </div>
+            </div>
+            <div class="portfolio-item row">
+                @foreach (var img in model.Galeri)
+                {
+                    <div style="padding:5px; height:250px; " class="col-lg-3 col-md-4 col-6 col-sm">
+                        <div class="card p-2" style="height:100%; background-size:cover; background-repeat:no-repeat; background-image:url('/gambar/@img.Name')">
+                            <i @onclick="@(()=>DeleteGambar(img))" style="font-size:20px; text-align:right; color:red" class="bx bx-message-x" name='message-alt-x'></i>
+                            <a href="@($"/gambar/{img.Name}")" style="height:100%" class="fancylight popup-btn" data-fancybox-group="light">
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+}
+
+
+
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
+
+
+@using System.IO
+@inject IWebHostEnvironment env
+
+@inject IItemBarangService ItemBarangService
+@inject IBlazorStrap _blazorStrap
+@inject IJSRuntime js
+
+@code {
+
+    Dialog dialog;
+
+    [Parameter]
+    public int Id { get; set; }
+    ItemBarang model;
+    protected override async Task OnInitializedAsync()
+    {
+        model = await ItemBarangService.Get(Id);
+
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await js.InvokeVoidAsync("loadinventarisgalery");
+    }
+
+
+    async Task AddImage()
+    {
+        await js.InvokeVoidAsync("showimage", "addgambar");
+    }
+    private ModalClass Modal { get; set; } = new ModalClass();
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        try
+        {
+
+            List<Gambar> list = new();
+            var selectedFiles = e.GetMultipleFiles();
+
+            if (selectedFiles.Count > 0)
+            {
+
+                foreach (var file in selectedFiles)
+                {
+                    Stream stream = file.OpenReadStream();
+                    var filename = Path.GetRandomFileName() + ".png";
+                    var path = $"{env.WebRootPath}\\gambar\\{filename}";
+                    FileStream fs = File.Create(path);
+                    await stream.CopyToAsync(fs);
+                    stream.Close();
+                    fs.Close();
+                    var gambar = new Gambar() { Name = filename };
+                    list.Add(gambar);
+                }
+                var saved=  await ItemBarangService.AddImages(model.Id, list);
+
+                if (saved)
+                {
+                    foreach (var item in list)
+                    {
+                        model.Galeri.Add(item);
+                    }
+                }
+
+                
+                this.StateHasChanged();
+                await _blazorStrap.Toaster.ShowMessage("Success", "Gambar berhasil disimpan", BSColor.Success);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+        }
+    }
+
+    private class ModalClass
+    {
+        public bool? HasFile { get; set; }
+    }
+
+    Gambar selectedPicture;
+    async Task DeleteGambar(Gambar gambar)
+    {
+        selectedPicture = gambar;
+        dialog.Title = "Delete";
+        dialog.Message = "Yakin Hapus Data ? ";
+        await dialog.ShowAsync();
+        // StateHasChanged();
+    }
+
+
+    async void OnCloseDeleteDialog(bool result)
+    {
+
+        if (result)
+        {
+            try
+            {
+                var deleted = await ItemBarangService.DeleteImage(model.Id, selectedPicture.Id);
+                if (deleted)
+                {
+                    model.Galeri.Remove(selectedPicture);
+                    StateHasChanged();
+                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
+                    var path = $"{env.WebRootPath}\\gambar\\{selectedPicture.Name}";
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+                    return;
+                }
+                throw new SystemException("Data tidak berhasil dihapus !");
+            }
+            catch (Exception ex)
+            {
+                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+            }
+        }
+
+    }
+
+}

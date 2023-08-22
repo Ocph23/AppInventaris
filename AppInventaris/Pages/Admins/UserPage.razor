@@ -1,0 +1,164 @@
+@layout AdminLayout
+@page "/admin/user"
+@using AppInventaris.Data;
+@using BlazorStrap.Extensions.FluentValidation
+@using global::FluentValidation
+
+
+<div style="display: flex;justify-content:space-between">
+    <BSLabel><h3>Data Lokasi</h3></BSLabel>
+    <BSButton style="height: 35px;" Size="Size.Small" Target="editmodal" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
+</div>
+<BSTable IsResponsive="true" IsStriped="true">
+    <BSTHead>
+        <BSTR>
+            <BSTD>#</BSTD>
+            <BSTD>Nama</BSTD>
+            <BSTD>Deskripsi/Keterangan</BSTD>
+            <BSTD style="width: 120px;"></BSTD>
+        </BSTR>
+    </BSTHead>
+    <BSTBody>
+        @if (datas == null)
+        {
+            <BSLabel>Load .... !</BSLabel>
+        }
+        @foreach (var item in datas.Select((data, index) => new { Data = data, index = index }))
+        {
+            <BSTR>
+                <BSTD>@(item.index + 1)</BSTD>
+                    <BSTD>@item.Data.Name</BSTD>
+                    <BSTD>@item.Data.Description</BSTD>
+                    <BSTD>
+                        <BSButton OnClick="@(()=>EditAction(item.Data))" Onc Color="BSColor.Warning"><i class="bx bx-edit"></i> </BSButton>
+                        <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i> </BSButton>
+                    </BSTD>
+                </BSTR>
+
+        }
+
+    </BSTBody>
+</BSTable>
+
+<BSModal @ref="modal" IsCentered="true" DataId="editmodal">
+    <Header>User</Header>
+    <Content>
+        <BSForm Model="model" OnValidSubmit="SaveAction">
+            <FluentValidator TValidator="LokasiValidator" />
+            <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Nama" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Nama)" />
+            <BSInput InputType="InputType.TextArea" placeholder="Jabatan" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Jabatan)" />
+
+            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Lokasi" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Jabatan)" />
+
+            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Lokasi" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Jabatan)" />
+
+            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+            <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+        </BSForm>
+    </Content>
+
+</BSModal>
+
+
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
+
+
+@inject ILokasiService lokasiService
+@inject IBlazorStrap _blazorStrap
+
+@code {
+
+    Dialog dialog;
+    BSModal modal;
+    ICollection<Lokasi> datas { get; set; }
+
+    ApplicationUser model = new ApplicationUser();
+
+    protected override async Task OnInitializedAsync()
+    {
+        datas = (await lokasiService.Get()).ToList();
+    }
+
+
+    async Task EditAction(Lokasi data)
+    {
+        model = data;
+        await modal.ShowAsync();
+    }
+
+    async Task DeleteAction(Lokasi data)
+    {
+        model = data;
+        dialog.Title = "Delete";
+        dialog.Message = "Yakin Hapus Data ? ";
+        await dialog.ShowAsync();
+    }
+
+
+    async void OnCloseDeleteDialog(bool result)
+    {
+
+        if (result)
+        {
+            try
+            {
+                var deleted = await lokasiService.Delete(model.Id);
+                if (deleted)
+                {
+                    datas.Remove(model);
+                    StateHasChanged();
+                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
+                    return;
+                }
+                throw new SystemException("Data tidak berhasil dihapus !");
+            }
+            catch (Exception ex)
+            {
+                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+            }
+        }
+
+    }
+
+
+
+
+    async Task SaveAction()
+    {
+        try
+        {
+
+            if (model.Id <= 0)
+            {
+                var result = await lokasiService.Post(model);
+                ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
+                datas.Add(result);
+            }
+            else
+            {
+                var updated = await lokasiService.Put(model.Id, model);
+            }
+            await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
+            await modal.HideAsync();
+            await InvokeAsync(() => StateHasChanged());
+        }
+        catch (Exception ex)
+        {
+            await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+        }
+    }
+
+    public class LokasiValidator : AbstractValidator<Lokasi>
+    {
+        public LokasiValidator()
+        {
+            RuleFor(customer => customer.Name).NotEmpty().MaximumLength(100);
+            RuleFor(customer => customer.Description).NotEmpty();
+        }
+    }
+
+}

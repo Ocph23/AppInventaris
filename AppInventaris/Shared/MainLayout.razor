@@ -1,0 +1,93 @@
+﻿@* Remember to replace the namespace below with your own project's namespace. *@
+@inherits LayoutComponentBase
+   <BSToaster Position="Position.Fixed" ZIndex="1011" />
+<header class="header" id="header">
+    <div></div>
+   <div style="display:flex; align-items:center;justify-content:center">
+        <div><LoginDisplay /></div>
+        <BSLink Target="theme" href="#" class="nav_link">
+            <i class='bx bx-color-fill nav_icon'></i>
+        </BSLink>
+   </div>
+</header>
+
+<!--Container Main start-->
+<div class="height-100" >
+    @Body
+</div>
+<!--Container Main end-->
+
+
+<BSModal @ref="modalx" Size="Size.Small" IsCentered="true" DataId="theme">
+    <Header>Themes</Header>
+    <Content>
+        <BSDropdown style="width: 100%;">
+            <Toggler>
+                <BSToggle IsButton="true" Color="BSColor.Secondary">@Selected</BSToggle>
+            </Toggler>
+            <Content>
+                @foreach (var item in _themes)
+                {
+                    <BSDropdownItem style="width: 100%;" OnClick="@(()=>SelectedChanged(item))">@item</BSDropdownItem>
+                }
+            </Content>
+        </BSDropdown>
+    </Content>
+
+</BSModal>
+
+
+<style>
+    body {
+        background-image: url('/bg.jpg');
+    }
+</style>
+
+
+
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager Navigation
+@inject IBlazorStrap _blazorStrap
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@code {
+    BSModal modalx;
+    private string? Selected { get; set; }
+    private List<string> _themes = new List<string>();
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        if (authState.User != null && authState.User.IsInRole("Admin"))
+        {
+            Navigation.NavigateTo("/admin");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstrun)
+    {
+        if (firstrun)
+        {
+            Selected = await localStorage.GetItemAsync<string>("theme");
+            if (string.IsNullOrEmpty(Selected))
+            {
+                Selected = "Cosmo";
+                await localStorage.SetItemAsync("theme", Selected);
+            }
+            await _blazorStrap.SetBootstrapCss(Selected, "5.1.3");
+        }
+    }
+
+    private async Task SelectedChanged(string value)
+    {
+        Selected = value;
+        await localStorage.SetItemAsync("theme", Selected);
+        await _blazorStrap.SetBootstrapCss(value, "5.1.3");
+    }
+    protected override void OnInitialized()
+    {
+        _themes = Enum.GetNames(typeof(Theme)).ToList();
+
+    }
+}
+
+

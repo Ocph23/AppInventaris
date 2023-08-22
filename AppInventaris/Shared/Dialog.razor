@@ -1,0 +1,53 @@
+
+<BSModal @ref="modal" IsCentered="true" DataId="modalDialog">
+    <Header>@Title</Header>
+    <Content>
+      <BSLabel>@Message</BSLabel>
+    </Content>
+    <Footer Context="modal">
+        <BSButton  MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="CloseAction" >@CancelText</BSButton>
+        <BSButton OnClick="OkAction" Color="BSColor.Danger">@OkText</BSButton>
+    </Footer>
+</BSModal>
+
+
+
+@code {
+
+    BSModal modal;
+
+    [Parameter]
+    public string Title { get; set; }="Title";
+
+    [Parameter]
+    public required string Message { get; set; }
+
+    [Parameter]
+    public string OkText { get; set; } = "Ok";
+
+    [Parameter]
+    public string CancelText { get; set; } = "Cancel";
+
+
+     [Parameter]
+    public EventCallback<bool> OnCloseCallback { get; set; }
+
+
+    public async Task ShowAsync(){
+
+        await modal.ShowAsync();
+    }
+
+
+    public Task CloseAction(){
+        OnCloseCallback.InvokeAsync(false);
+        modal.HideAsync();
+        return Task.CompletedTask;
+    }
+
+    public Task OkAction(){
+        OnCloseCallback.InvokeAsync(true);
+        modal.HideAsync();
+        return Task.CompletedTask;
+    }
+}
