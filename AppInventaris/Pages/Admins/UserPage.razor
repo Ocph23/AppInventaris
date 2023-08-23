@@ -1,12 +1,13 @@
 @layout AdminLayout
 @page "/admin/user"
 @using AppInventaris.Data;
+@using AppInventaris.Services;
 @using BlazorStrap.Extensions.FluentValidation
 @using global::FluentValidation
 
 
 <div style="display: flex;justify-content:space-between">
-    <BSLabel><h3>Data RegisterModel</h3></BSLabel>
+    <BSLabel><h3>Data RegisterUserModel</h3></BSLabel>
     <BSButton style="height: 35px;" Size="Size.Small" Target="editmodal" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
@@ -17,7 +18,7 @@
             <BSTD>Email</BSTD>
             <BSTD>Jabatan</BSTD>
             <BSTD>Alamat</BSTD>
-            <BSTD>Deskripsi/Keterangan</BSTD>
+            <BSTD>Aktif</BSTD>
             <BSTD style="width: 120px;"></BSTD>
         </BSTR>
     </BSTHead>
@@ -31,10 +32,14 @@
             <BSTR>
                 <BSTD>@(item.index + 1)</BSTD>
                     <BSTD>@item.Data.Name</BSTD>
-                    <BSTD>@item.Data.Description</BSTD>
+                    <BSTD>@item.Data.Email</BSTD>
+                    <BSTD>@item.Data.Jabatan</BSTD>
+                    <BSTD>@item.Data.Address</BSTD>
                     <BSTD>
-                        <BSButton OnClick="@(()=>EditAction(item.Data))" Onc Color="BSColor.Warning"><i class="bx bx-edit"></i> </BSButton>
-                        <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i> </BSButton>
+                        <BSInputCheckbox IsReadonly CheckedValue="true" UnCheckedValue="false" @bind-Value="@item.Data.Active" MarginBottom="Margins.Medium" />
+                    </BSTD>
+                    <BSTD>
+                        <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Warning"><i class="bx bx-edit"></i> </BSButton>
                     </BSTD>
                 </BSTR>
 
@@ -47,24 +52,62 @@
     <Header>User</Header>
     <Content>
         <BSForm Model="model" OnValidSubmit="SaveAction">
-            <FluentValidator TValidator="RegisterModelValidator" />
-            <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Nama" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Nama)" />
+            <FluentValidator TValidator="RegisterUserModelValidator" />
+            <div class="mb-3">
+                <BSLabel>Nama</BSLabel>
+                <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Nama" MarginBottom="Margins.Medium" />
+                <ValidationMessage For="@(() => model.Nama)" />
+            </div>
 
-            <BSInput InputType="InputType.Text" placeholder="Email" @bind-Value="model.Email" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Email)" />
+            <div class="mb-3">
+                <BSLabel>Email</BSLabel>
+                <BSInput IsDisabled="@(!string.IsNullOrEmpty(model.Id))" InputType="InputType.Email" placeholder="Email" @bind-Value="model.Email" MarginBottom="Margins.Medium" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
 
-            <BSInput InputType="InputType.Text" placeholder="Jabatan" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Jabatan)" />
+            <div class="mb-3">
+                <BSLabel>Jabatan</BSLabel>
+                <BSInput InputType="InputType.Text" placeholder="Jabatan" @bind-Value="model.Jabatan" MarginBottom="Margins.Medium" />
+                <ValidationMessage For="@(() => model.Jabatan)" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Alamat</BSLabel>
+                <BSInput InputType="InputType.TextArea" placeholder="Alamat" @bind-Value="model.Alamat" MarginBottom="Margins.Medium" />
+                <ValidationMessage For="@(() => model.Alamat)" />
+            </div>
+            @if (model != null && string.IsNullOrEmpty(model.Id))
+            {
+                <div class="mb-3">
+                    <BSLabel>Role</BSLabel>
+                    <BSInput MarginBottom="Margins.Medium" InputType="InputType.Select" @bind-Value="model.UserType">
+                        <option value="">Pilih Role</option>
+                        @foreach (var item in new List<string> { "Pimpinan", "Penilai" })
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </BSInput>
+                    <ValidationMessage For="@(() => model.UserType)" />
+                </div>
 
-            <BSInput InputType="InputType.TextArea" placeholder="Alamat" @bind-Value="model.Alamat" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => model.Alamat)" />
 
-          
-            <BSInput InputType="InputType.Password" placeholder="Password" @bind-Value="password" MarginBottom="Margins.Medium" />
-            <ValidationMessage For="@(() => password)" />
+                <div class="mb-3">
+                    <BSLabel>Password</BSLabel>
+                    <BSInput InputType="InputType.Password" placeholder="Password" @bind-Value="model.Password" MarginBottom="Margins.Medium" />
+                    <ValidationMessage For="@(() => model.Password)" />
+                </div>
 
-            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+                <div class="mb-3">
+                    <BSLabel>Confirm Password</BSLabel>
+                    <BSInput InputType="InputType.Password" placeholder="Confirm Password" @bind-Value="model.ConfirmPassword" MarginBottom="Margins.Medium" />
+                    <ValidationMessage For="@(() => model.ConfirmPassword)" />
+                </div>
+            }
+            <div class="mb-3">
+                <BSLabel>Aktif ?</BSLabel>
+                <BSInputCheckbox CheckedValue="true" UnCheckedValue="false" @bind-Value="model.Active" MarginBottom="Margins.Medium" />
+            </div>
+
+            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="CloseModal">Close</BSButton>
             <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
         </BSForm>
     </Content>
@@ -72,86 +115,86 @@
 </BSModal>
 
 
-<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
-
-
-@inject IRegisterModelService RegisterModelService
+@inject IUserService userService
 @inject IBlazorStrap _blazorStrap
 
 @code {
 
     Dialog dialog;
     BSModal modal;
-    ICollection<RegisterModel> datas { get; set; }
-
-    RegisterModel model = new RegisterModel();
+    ICollection<UserModel> datas { get; set; }
+    RegisterUserModelValidator validator = new RegisterUserModelValidator();
+    RegisterUserModel model = new RegisterUserModel();
 
     protected override async Task OnInitializedAsync()
     {
-        datas = (await RegisterModelService.Get()).ToList();
+        datas = (await userService.Get()).ToList();
+
     }
 
-
-    async Task EditAction(RegisterModel data)
+    async Task DeleteAction(UserModel data)
     {
-        model = data;
+        model = new RegisterUserModel
+            {
+                Id = data.Id,
+                Alamat = data.Address,
+                Email = data.Email,
+                Jabatan = data.Jabatan,
+                Nama = data.Name,
+                Active = data.Active,
+                Password = "pwd",
+                ConfirmPassword = "pwd",
+                UserType = data.UserType
+            };
         await modal.ShowAsync();
     }
 
-    async Task DeleteAction(RegisterModel data)
+
+    async Task CloseModal()
     {
-        model = data;
-        dialog.Title = "Delete";
-        dialog.Message = "Yakin Hapus Data ? ";
-        await dialog.ShowAsync();
+        model = new RegisterUserModel();
+        await modal.HideAsync();
     }
-
-
-    async void OnCloseDeleteDialog(bool result)
-    {
-
-        if (result)
-        {
-            try
-            {
-                var deleted = await RegisterModelService.Delete(model.Id);
-                if (deleted)
-                {
-                    datas.Remove(model);
-                    StateHasChanged();
-                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
-                    return;
-                }
-                throw new SystemException("Data tidak berhasil dihapus !");
-            }
-            catch (Exception ex)
-            {
-                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
-            }
-        }
-
-    }
-
-
 
 
     async Task SaveAction()
     {
         try
         {
-            if (string.IsNullOrEmpty(model.Id))
+            var validatorResult = validator.Validate(model);
+            if (validatorResult.IsValid)
             {
-                //var result = await RegisterModelService.Post(model);
-                //ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
-                //datas.Add(result);
+                if (string.IsNullOrEmpty(model.Id))
+                {
+                    var result = await userService.Register(model);
+                    if (result.IsError)
+                    {
+                        throw new Exception(result.FirstError.Description);
+                    }
+                    datas.Add(result.Value);
+                }
+                else
+                {
+                    var result = await userService.Update(model);
+
+                    if (!result.IsError)
+                    {
+                        var res = datas.FirstOrDefault(x => x.Id == model.Id);
+                        res.Name = model.Nama;
+                        res.Jabatan = model.Jabatan;
+                        res.Address = model.Alamat;
+                        res.Active = model.Active;
+                    }
+                }
+
+
+
+                await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
+                await modal.HideAsync();
+                await InvokeAsync(() => StateHasChanged());
             }
             else
-            {
-               // var updated = await RegisterModelService.Put(model.Id, model);
-            }
-            await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
-            await modal.HideAsync();
-            await InvokeAsync(() => StateHasChanged());
+                throw new SystemException("Lengkapi Data Anda");
         }
         catch (Exception ex)
         {
@@ -159,12 +202,19 @@
         }
     }
 
-    public class RegisterModelValidator : AbstractValidator<RegisterModel>
+    public class RegisterUserModelValidator : AbstractValidator<RegisterUserModel>
     {
-        public RegisterModelValidator()
+        public RegisterUserModelValidator()
         {
-            RuleFor(customer => customer.Name).NotEmpty().MaximumLength(100);
-            RuleFor(customer => customer.Description).NotEmpty();
+            RuleFor(model => model.Nama).NotEmpty();
+            RuleFor(model => model.Jabatan).NotEmpty();
+            RuleFor(model => model.Alamat).NotEmpty();
+            RuleFor(model => model.Email).NotEmpty().EmailAddress();
+            RuleFor(model => model.Password).NotEmpty();
+            RuleFor(model => model.UserType).NotEmpty().WithMessage("'Role' must not be empty.");
+            RuleFor(x => x.ConfirmPassword)
+           .NotEmpty().WithMessage("Confirm Password Required").When(x => !string.IsNullOrEmpty(x.Password))
+           .Equal(x => x.Password).WithMessage("Password Not Same !");
         }
     }
 

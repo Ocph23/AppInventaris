@@ -2,11 +2,9 @@
 {
     public enum StatusPenilaian
     {
-        None,
-        Baru,
-        SangatBaik,
-        Baik,
-        Rusak,
-        Hilang
+       None,
+       Diterima,
+       Dikembalikan,
+       Ditolak
     }
 }

@@ -1,0 +1,227 @@
+@layout PenilaiLayout
+@page "/penilai/penilaian/{Id:int}"
+@using AppInventaris.Data;
+@using BlazorStrap.Extensions.FluentValidation
+@using Microsoft.AspNetCore.Identity;
+@using global::FluentValidation
+
+
+<div class="col-md-4">
+    <BSForm Model="model" OnValidSubmit="SaveAction">
+        <FluentValidator TValidator="PenilaianValidator"></FluentValidator>
+
+        <div style="display: flex;justify-content:space-between">
+            <BSLabel><h3>Penilaian</h3></BSLabel>
+            <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+        </div>
+        <div class="mb-3">
+            <BSLabel style="font-size: 11px;">Tanggal Penilaian</BSLabel>
+            <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Tanggal)" />
+        </div>
+
+        <div class="mb-3">
+            <BSLabel>Dinilai Oleh : @(model.Penilai != null ? $"{model.Penilai.Nama}" : "")</BSLabel>
+            </div>
+        </BSForm>
+    </div>
+
+
+    <BSListGroup>
+        @if (datas == null)
+    {
+        <BSLabel>Load .... !</BSLabel>
+    }
+
+
+    @foreach (var items in model.DataPenilaian.GroupBy(x => x.Barang.LokasiId))
+    {
+        <BSListGroupItem>
+           <div style="display:flex;justify-content:space-between">
+                <h5> @items.FirstOrDefault().Barang.Lokasi.Name</h5>
+                <BSLink Target="collapse1" MarginEnd="Margins.Medium"><i style="font-size:2rem" class='bx bx-chevron-down'></i></BSLink>
+           </div>
+            <BSCollapse DataId="collapse1">
+                <BSTable IsResponsive="true">
+                    <BSTHead>
+                        <BSTR>
+                            <BSTD>#</BSTD>
+                            <BSTD>Kode</BSTD>
+                            <BSTD>Barang</BSTD>
+                            <BSTD>Merek</BSTD>
+                            <BSTD>Kondis</BSTD>
+                            <BSTD style="width:200px">Penilaian</BSTD>
+                        </BSTR>
+                    </BSTHead>
+                    <BSTBody>
+
+                        @foreach (var data in items.Select((x, i) => new { Data = x, Index = i }))
+                        {
+                            <BSTR>
+                                <BSTD>@(data.Index + 1)</BSTD>
+                                    <BSTD>@data.Data.Barang.Kode</BSTD>
+                                    <BSTD>@data.Data.Barang.Barang.Name</BSTD>
+                                    <BSTD>@data.Data.Barang.Barang.Merek</BSTD>
+                                    <BSTD>@data.Data.Barang.Kondisi</BSTD>
+                                    <BSTD>
+                                        <BSInput MarginBottom="Margins.Medium" InputType="InputType.Select" @bind-Value="data.Data.StatusPenilaian">
+                                            <option style="color:gray" value="">Penilaian</option>
+                                            @foreach (var item in Enum.GetValues(typeof(KondisiBarang)).Cast<KondisiBarang>())
+                                        {
+                                            <option value="@item">@item.EnumToTitleCase()</option>
+                                        }
+                                    </BSInput>
+                                </BSTD>
+                            </BSTR>
+                        }
+
+                    </BSTBody>
+                </BSTable>
+            </BSCollapse>
+        </BSListGroupItem>
+
+
+    }
+
+</BSListGroup>
+
+
+
+
+
+<BSModal @ref="modal" IsCentered="true" DataId="editmodal">
+    <Header>Edit Penilaian</Header>
+    <Content>
+        <BSForm Model="model" OnValidSubmit="SaveAction">
+            <FluentValidator TValidator="PenilaianValidator" />
+            <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
+            <ValidationMessage For="@(() => model.Tanggal)" />
+            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Penilaian" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
+
+            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+            <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+        </BSForm>
+    </Content>
+
+</BSModal>
+
+
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
+
+
+@inject IPenilaianService penilaianService
+@inject IBlazorStrap _blazorStrap
+
+@inject AuthenticationStateProvider userStateprovider
+@inject UserManager<ApplicationUser> userManager
+@inject IItemBarangService itemBarangService
+
+
+@code {
+
+
+    [Parameter]
+    public int Id { get; set; }
+
+    Dialog dialog;
+    BSModal modal;
+    ICollection<Penilaian> datas { get; set; } = Enumerable.Empty<Penilaian>().ToList();
+
+    Penilaian model = new Penilaian();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var provider = await userStateprovider.GetAuthenticationStateAsync();
+        if (provider.User.Identity.IsAuthenticated)
+        {
+            model.Penilai = await userManager.FindByEmailAsync(provider.User.Identity.Name);
+        }
+
+        var itembarang = await itemBarangService.Get();
+        foreach (var item in itembarang)
+        {
+            model.DataPenilaian.Add(new PenilaianItem { Barang = item });
+        }
+
+        if (Id > 0)
+        {
+            model = await penilaianService.Get(Id);
+        }
+    }
+
+
+    async Task EditAction(Penilaian data)
+    {
+        model = data;
+        await modal.ShowAsync();
+    }
+
+    async Task DeleteAction(Penilaian data)
+    {
+        model = data;
+        dialog.Title = "Delete";
+        dialog.Message = "Yakin Hapus Data ? ";
+        await dialog.ShowAsync();
+    }
+
+
+    async void OnCloseDeleteDialog(bool result)
+    {
+
+        if (result)
+        {
+            try
+            {
+                var deleted = await penilaianService.Delete(model.Id);
+                if (deleted)
+                {
+                    datas.Remove(model);
+                    StateHasChanged();
+                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
+                    return;
+                }
+                throw new SystemException("Data tidak berhasil dihapus !");
+            }
+            catch (Exception ex)
+            {
+                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+            }
+        }
+
+    }
+
+    async Task SaveAction()
+    {
+        try
+        {
+
+            if (model.Id <= 0)
+            {
+                var result = await penilaianService.Post(model);
+                ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
+                datas.Add(result);
+            }
+            else
+            {
+                var updated = await penilaianService.Put(model.Id, model);
+            }
+            await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
+            await modal.HideAsync();
+            await InvokeAsync(() => StateHasChanged());
+        }
+        catch (Exception ex)
+        {
+            await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+        }
+    }
+
+    public class PenilaianValidator : AbstractValidator<Penilaian>
+    {
+        public PenilaianValidator()
+        {
+            RuleFor(customer => customer.Tanggal).NotEmpty();
+            RuleFor(customer => customer.Penilai).NotEmpty();
+        }
+    }
+
+}

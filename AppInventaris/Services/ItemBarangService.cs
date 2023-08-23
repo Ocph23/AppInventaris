@@ -33,7 +33,9 @@ public class ItemBarangService : IItemBarangService
     {
         try
         {
-            var datas = dbContext.ItemBarang;
+            var datas = dbContext.ItemBarang
+                .Include(x=>x.Barang)
+                .Include(x=>x.Lokasi);
             if (datas.Count() <= 0)
                 return Enumerable.Empty<ItemBarang>();
             return datas.ToList();
@@ -81,7 +83,7 @@ public class ItemBarangService : IItemBarangService
     {
         try
         {
-            var updated = await dbContext.ItemBarang.ExecuteUpdateAsync(
+            var updated = await dbContext.ItemBarang.Where(x=>x.Id==id).ExecuteUpdateAsync(
                 (x) =>
                     x.SetProperty(x => x.Kode, model.Kode)
                         .SetProperty(x => x.BarangId, model.BarangId)

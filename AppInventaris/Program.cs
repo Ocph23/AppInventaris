@@ -2,6 +2,7 @@ using AppInventaris;
 using AppInventaris.Areas.Identity;
 using AppInventaris.Data;
 using AppInventaris.Models;
+using AppInventaris.Services;
 using Blazored.LocalStorage;
 using BlazorStrap;
 using Microsoft.AspNetCore.Components;
@@ -18,11 +19,11 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// var connectionString =
-//     builder.Configuration.GetConnectionString("DefaultConnection")
-//     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -42,6 +43,8 @@ builder.Services.AddScoped<ILokasiService, LokasiService>();
 builder.Services.AddScoped<IBarangService, BarangService>();
 builder.Services.AddScoped<IKategoriService, KategoriService>();
 builder.Services.AddScoped<IItemBarangService, ItemBarangService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPenilaianService, PenilaianService>();
 
 
 

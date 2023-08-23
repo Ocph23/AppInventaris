@@ -16,6 +16,7 @@ namespace AppInventaris.Data
         public DbSet<Barang> Barang { get; set; }
         public DbSet<Kategori> Kategori { get; set; }
         public DbSet<Lokasi> Lokasi { get; set; }
+        public DbSet<Penilaian> Penilaian { get; set; }
         public DbSet<ItemBarang> ItemBarang { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {

@@ -7,7 +7,7 @@
 
 <div style="display: flex;justify-content:space-between">
     <BSLabel><h3>DATA INVENTARIS BARANG</h3></BSLabel>
-    <BSButton style="height: 35px;" Size="Size.Small"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
+    <BSButton style="height: 35px;" Size="Size.Small" Target="editmodal" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
     <BSTHead>
@@ -22,82 +22,87 @@
         </BSTR>
     </BSTHead>
     <BSTBody>
-        @if(datas==null){
+        @if (datas == null)
+        {
             <BSLabel>Load .... !</BSLabel>
         }
-        @foreach(var item in datas.Select((data,index)=>new {Data=data, index=index})){
-         <BSTR>
-            <BSTD>@(item.index+1)</BSTD>
-            <BSTD>@item.Data.Kode</BSTD>
-            <BSTD>@item.Data.Barang.Name</BSTD>
-            <BSTD>@item.Data.Lokasi.Name</BSTD>
-            <BSTD>@item.Data.Kondisi.EnumToTitleCase()</BSTD>
-            <BSTD><BSInputCheckbox TValue="bool" IsDisabled="true" CheckedValue="item.Data.AdaGambar"></BSInputCheckbox></BSTD>
-            <BSTD >
-                <BSButton OnClick="@(()=>EditAction(item.Data))"  Color="BSColor.Warning"><i class="bx bx-edit"></i></BSButton>
-                <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i></BSButton>
-                <BSButton OnClick="@(()=>nav.NavigateTo($"/admin/inventaris/{item.Data.Id}"))" Color="BSColor.Info"><i class="bx bx-image"></i></BSButton>
-            </BSTD>
-        </BSTR>
+        @foreach (var item in datas.Select((data, index) => new { Data = data, index = index }))
+        {
+            <BSTR>
+                <BSTD>@(item.index + 1)</BSTD>
+                    <BSTD>@item.Data.Kode</BSTD>
+                    <BSTD>@item.Data.Barang.Name</BSTD>
+                    <BSTD>@item.Data.Lokasi.Name</BSTD>
+                    <BSTD>@item.Data.Kondisi.EnumToTitleCase()</BSTD>
+                    <BSTD><BSInputCheckbox TValue="bool" IsDisabled="true" CheckedValue="item.Data.AdaGambar"></BSInputCheckbox></BSTD>
+                    <BSTD>
+                        <BSButton OnClick="@(()=>EditAction(item.Data))" Color="BSColor.Warning"><i class="bx bx-edit"></i></BSButton>
+                        <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i></BSButton>
+                        <BSButton OnClick="@(()=>nav.NavigateTo($"/admin/inventaris/{item.Data.Id}"))" Color="BSColor.Info"><i class="bx bx-image"></i></BSButton>
+                    </BSTD>
+                </BSTR>
 
         }
-       
+
     </BSTBody>
 </BSTable>
 
 <BSModal @ref="modal" IsCentered="true" DataId="editmodal">
     <Header>Edit ItemBarang</Header>
     <Content>
-  <BSForm Model="model" OnValidSubmit="SaveAction">
-        <FluentValidator TValidator="ItemBarangValidator" />
-         <div class="mb-3">
-            <BSLabel>Kode</BSLabel>
-             <BSInput InputType="InputType.Text" placeholder="Kode" @bind-Value="model.Kode"/>
-        <ValidationMessage For="@(() => model.Kode)" />
-        </div>
-        <div class="mb-3">
-            <BSLabel>Barang</BSLabel>
-                <BSInput  InputType="InputType.Select"
-                 @bind-Value="model.BarangId" >
+        <BSForm Model="model" OnValidSubmit="SaveAction">
+            <FluentValidator TValidator="ItemBarangValidator" />
+            <div class="mb-3">
+                <BSLabel>Kode</BSLabel>
+                <BSInput InputType="InputType.Text" placeholder="Kode" @bind-Value="model.Kode" />
+                <ValidationMessage For="@(() => model.Kode)" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Barang</BSLabel>
+                <BSInput InputType="InputType.Select"
+                @bind-Value="model.BarangId">
                     <option value="null">Pilih Barang</option>
-                @foreach(var item in databarang){
-                    <option value="@item.Id">@item.Name</option>
-                }
+                    @foreach (var item in databarang)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
                 </BSInput>
-                 <ValidationMessage For="@(() => model.Barang)" />
-        </div>
+                <ValidationMessage For="@(() => model.Barang)" />
+            </div>
 
-          <div class="mb-3">
-            <BSLabel>Lokasi</BSLabel>
-                <BSInput  InputType="InputType.Select" 
-                 @bind-Value="model.LokasiId" >
+            <div class="mb-3">
+                <BSLabel>Lokasi</BSLabel>
+                <BSInput InputType="InputType.Select"
+                @bind-Value="model.LokasiId">
                     <option value="null">Pilih Lokasi</option>
-                @foreach(var item in datalokasi){
-                    <option value="@item.Id">@item.Name</option>
-                }
+                    @foreach (var item in datalokasi)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
                 </BSInput>
-                 <ValidationMessage For="@(() => model.Lokasi)" />
-        </div>
+                <ValidationMessage For="@(() => model.Lokasi)" />
+            </div>
 
-        <div class="mb-3">
-            <BSLabel>Kondisi Barang</BSLabel>
-                <BSInput  InputType="InputType.Select" 
-                 @bind-Value="model.Kondisi" >
-                @foreach(var item in Enum.GetValues(typeof(KondisiBarang)).Cast<KondisiBarang>()){
-                    <option value="@item">@item.EnumToTitleCase()</option>
-                }
+            <div class="mb-3">
+                <BSLabel>Kondisi Barang</BSLabel>
+                <BSInput InputType="InputType.Select"
+                @bind-Value="model.Kondisi">
+                    @foreach (var item in Enum.GetValues(typeof(KondisiBarang)).Cast<KondisiBarang>())
+                    {
+                        <option value="@item">@item.EnumToTitleCase()</option>
+                    }
                 </BSInput>
-                 <ValidationMessage For="@(() => model.Kondisi)" />
-        </div>
-        <BSButton  IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync" >Close</BSButton>
-        <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
-    </BSForm>
+                <ValidationMessage For="@(() => model.Kondisi)" />
+            </div>
+            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+            <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+        </BSForm>
     </Content>
-  
+
 </BSModal>
 
 
-<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog" ></Dialog>
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
 
 
 @inject IItemBarangService ItemBarangService
@@ -105,86 +110,101 @@
 @inject ILokasiService LokasiService
 @inject IBlazorStrap _blazorStrap
 
-@code{
+@code {
 
     Dialog dialog;
     BSModal modal;
-    ICollection<ItemBarang> datas{get;set;}
+    ICollection<ItemBarang> datas { get; set; }
     IEnumerable<Barang> databarang;
     IEnumerable<Lokasi> datalokasi;
     ItemBarang model = new ItemBarang();
 
-    
 
-    protected override async Task OnInitializedAsync(){
+
+    protected override async Task OnInitializedAsync()
+    {
         databarang = await BarangService.Get();
         datalokasi = await LokasiService.Get();
         datas = (await ItemBarangService.Get()).ToList();
     }
 
-    async Task EditAction(ItemBarang data){
-        model=data;
+    async Task EditAction(ItemBarang data)
+    {
+        model = data;
         await modal.ShowAsync();
     }
 
-    async  Task DeleteAction(ItemBarang data){
-        model = data;
-        dialog.Title="Delete"; 
-        dialog.Message="Yakin Hapus Data ? ";
-       await dialog.ShowAsync();
-    }
-
-
-    async void OnCloseDeleteDialog(bool result){
-       
-       if(result){
-        try  {
-                var deleted =await  ItemBarangService.Delete(model.Id);
-                if(deleted)
-                {
-                datas.Remove(model);
-                StateHasChanged();
-                await _blazorStrap.Toaster.ShowMessage("Delete","Data Berhasil Dihapus", BSColor.Success);
-                return;
-            }
-            throw new SystemException("Data tidak berhasil dihapus !");
-       }catch(Exception ex){
-            await _blazorStrap.Toaster.ShowMessage("Error",ex.Message, BSColor.Danger);
-       }  
-       }  
-
-    }
-
-     async Task SaveAction()
+    async Task DeleteAction(ItemBarang data)
     {
-        try {
+        model = data;
+        dialog.Title = "Delete";
+        dialog.Message = "Yakin Hapus Data ? ";
+        await dialog.ShowAsync();
+    }
 
-            if(model.Id<=0){
+
+    async void OnCloseDeleteDialog(bool result)
+    {
+
+        if (result)
+        {
+            try
+            {
+                var deleted = await ItemBarangService.Delete(model.Id);
+                if (deleted)
+                {
+                    datas.Remove(model);
+                    StateHasChanged();
+                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
+                    return;
+                }
+                throw new SystemException("Data tidak berhasil dihapus !");
+            }
+            catch (Exception ex)
+            {
+                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+            }
+        }
+
+    }
+
+    async Task SaveAction()
+    {
+        try
+        {
+
+            if (model.Id <= 0)
+            {
                 var result = await ItemBarangService.Post(model);
-                ArgumentNullException.ThrowIfNull(result,"Data Tidak Berhasil Disimpain !");
+                ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
                 datas.Add(result);
-            }else{
+            }
+            else
+            {
                 var updated = await ItemBarangService.Put(model.Id, model);
-                if(updated){
-                        model.Lokasi = datalokasi.FirstOrDefault(x=>x.Id==model.LokasiId)!;
-                        model.Barang = databarang.FirstOrDefault(x=>x.Id==model.BarangId)!;
+                if (updated)
+                {
+                    model.Lokasi = datalokasi.FirstOrDefault(x => x.Id == model.LokasiId)!;
+                    model.Barang = databarang.FirstOrDefault(x => x.Id == model.BarangId)!;
                 }
             }
-               await _blazorStrap.Toaster.ShowMessage("Success","Data Berhasil Disimpan !", BSColor.Success);
+            await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
             await modal.HideAsync();
-            await InvokeAsync(()=> StateHasChanged());
-        }catch(Exception ex){
-           await _blazorStrap.Toaster.ShowMessage("Error",ex.Message,BSColor.Danger);
+            await InvokeAsync(() => StateHasChanged());
+        }
+        catch (Exception ex)
+        {
+            await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
         }
     }
 
-public class ItemBarangValidator : AbstractValidator<ItemBarang>
+    public class ItemBarangValidator : AbstractValidator<ItemBarang>
     {
         public ItemBarangValidator()
         {
             RuleFor(customer => customer.Kode).NotEmpty().MaximumLength(100);
-            RuleFor(customer => customer.Lokasi).NotNull();
-            RuleFor(customer => customer.Barang).NotNull();
+            RuleFor(customer => customer.LokasiId).GreaterThan(0);
+            RuleFor(customer => customer.BarangId).GreaterThan(0);
             RuleFor(customer => customer.Kondisi).NotEmpty();
         }
     }

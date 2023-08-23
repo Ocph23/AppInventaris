@@ -57,9 +57,16 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-        if (authState.User != null && authState.User.IsInRole("Admin"))
+        if (authState.User != null)
         {
-            Navigation.NavigateTo("/admin");
+            if(authState.User.IsInRole("Admin"))
+                Navigation.NavigateTo("/admin");
+
+            if (authState.User.IsInRole("Penilai"))
+                Navigation.NavigateTo("/penilai");
+
+            if (authState.User.IsInRole("Pimpinan"))
+                Navigation.NavigateTo("/pimpinan");
         }
     }
 

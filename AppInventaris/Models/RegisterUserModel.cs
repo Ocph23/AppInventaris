@@ -1,6 +1,8 @@
 namespace AppInventaris.Models;
 
-public class RegisterModel{
+public class RegisterUserModel{
+
+    public string Id { get; set; }
     public string Nama{get;set;}
 
     public string Email{get;set;}
@@ -13,13 +15,16 @@ public class RegisterModel{
 
     public string ConfirmPassword{get;set;}
 
-    public UserType UserType{get;set;}
+    public string UserType{get;set;}
+
+    public bool Active { get; set;}
 }
 
 
-public enum UserType
-{
-    Pimpinan,
-    Penilai,
-    Admin
-}
+//public enum UserType
+//{
+//    None,
+//    Pimpinan,
+//    Penilai,
+//    Admin
+//}

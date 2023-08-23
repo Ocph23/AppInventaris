@@ -1,0 +1,30 @@
+﻿@* Remember to replace the namespace below with your own project's namespace. *@
+@inherits LayoutComponentBase
+@attribute [Authorize]
+
+<BSToaster Position="Position.Fixed" ZIndex="1011" />
+<header class="header" id="header">
+    <div class="header_toggle"> <i class='bx bx-menu' id="header-toggle"></i> </div>
+    <div><LoginDisplay /></div>
+</header>
+<div class="l-navbar bg-secondary" id="nav-bar">
+    <PimpinanNavMenu></PimpinanNavMenu>
+</div>
+<!--Container Main start-->
+<div class="height-100">
+    @Body
+</div>
+<!--Container Main end-->
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager Navigation
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        if (authState.User != null && authState.User.Identity.IsAuthenticated && authState.User.IsInRole("Pimpinan"))
+        {
+            return;
+        }
+        Navigation.NavigateTo("/Identity/Account/Login", true);
+    }
+}

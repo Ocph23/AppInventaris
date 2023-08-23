@@ -6,7 +6,7 @@
 
 <div style="display: flex;justify-content:space-between">
     <BSLabel><h3>Data Barang</h3></BSLabel>
-    <BSButton style="height: 35px;" Size="Size.Small"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
+    <BSButton style="height: 35px;" Size="Size.Small" OnClick="AddNew" Target="editmodal" Color="BSColor.Primary"><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
     <BSTHead>
@@ -21,187 +21,213 @@
         </BSTR>
     </BSTHead>
     <BSTBody>
-        @if(datas==null){
+        @if (datas == null)
+        {
             <BSLabel>Load .... !</BSLabel>
         }
-        @foreach(var item in datas.Select((data,index)=>new {Data=data, index=index})){
-         <BSTR>
-            <BSTD>@(item.index+1)</BSTD>
-            <BSTD>@item.Data.Name</BSTD>
-            <BSTD>@item.Data.Kategori.Name</BSTD>
-            <BSTD>@item.Data.Merek</BSTD>
-            <BSTD>@item.Data.Berat</BSTD>
-            <BSTD>@($"{item.Data.Dimensi.Panjang} x{item.Data.Dimensi.Lebar}x {item.Data.Dimensi.Tinggi}")</BSTD>
-            <BSTD>
-                <BSButton OnClick="@(()=>EditAction(item.Data))"  Color="BSColor.Warning"><i class="bx bx-edit"></i> </BSButton>
-                <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i> </BSButton>
-            </BSTD>
-        </BSTR>
+        @foreach (var item in datas.Select((data, index) => new { Data = data, index = index }))
+        {
+            <BSTR>
+                <BSTD>@(item.index + 1)</BSTD>
+                    <BSTD>@item.Data.Name</BSTD>
+                    <BSTD>@item.Data.Kategori.Name</BSTD>
+                    <BSTD>@item.Data.Merek</BSTD>
+                    <BSTD>@item.Data.Berat</BSTD>
+                    <BSTD>@($"{item.Data.Dimensi.Panjang} x{item.Data.Dimensi.Lebar}x {item.Data.Dimensi.Tinggi}")</BSTD>
+                    <BSTD>
+                        <BSButton OnClick="@(()=>EditAction(item.Data))" Color="BSColor.Warning"><i class="bx bx-edit"></i> </BSButton>
+                        <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i> </BSButton>
+                    </BSTD>
+                </BSTR>
 
         }
-       
+
     </BSTBody>
 </BSTable>
 
 <BSModal @ref="modal" IsCentered="true" DataId="editmodal">
     <Header>Edit Barang</Header>
     <Content>
-  <BSForm Model="model" OnValidSubmit="SaveAction">
-        <FluentValidator TValidator="BarangValidator" />
-        <div class="mb-3">
-            <BSLabel>Kategori</BSLabel>
-                <BSInput MarginBottom="Margins.Medium" InputType="InputType.Select" @bind-Value="kategoriIdSelected" >
-                    <option value="null">Pilih Kategori</option>
-                @foreach(var item in categories){
-                    <option value="@item.Id">@item.Name</option>
-                }
-                </BSInput>
-        </div>
-      
-        <div class="mb-3">
-            <BSLabel>Nama Barang</BSLabel>
-             <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Name"/>
-        <ValidationMessage For="@(() => model.Name)" />
-        </div>
-          <div class="mb-3">
-            <BSLabel>Merek</BSLabel>
-             <BSInput InputType="InputType.Text" placeholder="Merek" @bind-Value="model.Merek"/>
-            <ValidationMessage For="@(() => model.Merek)" />
-        </div>
-
-         <div class="mb-3">
-            <BSLabel>Berat Barang (Kg)</BSLabel>
-             <BSInput InputType="InputType.Number" placeholder="Berat Barang" @bind-Value="model.Berat"/>
-            <ValidationMessage For="@(() => model.Berat)" />
-        </div>
-          <div class="mb-3">
-            <BSLabel>Dimensi (cm)</BSLabel>
-            <div style="display:flex; justify-content: space-between;">
-               <div >
-                <BSLabel style="font-size: 11px;">Panjang</BSLabel>
-                 <BSInput InputType="InputType.Number"  placeholder="Panjang" @bind-Value="model.Dimensi.Panjang"/>
-                 <ValidationMessage For="@(()=>model.Dimensi.Panjang)"/>
-               </div>
-                <div>
-                <BSLabel style="font-size: 11px;">Lebar</BSLabel>
-                 <BSInput InputType="InputType.Number" placeholder="lebar" @bind-Value="model.Dimensi.Lebar"/>
-                 <ValidationMessage For="@(()=>model.Dimensi.Lebar)"/>
-               </div>
-                <div>
-                <BSLabel style="font-size: 11px;">Tinggi</BSLabel>
-                 <BSInput InputType="InputType.Number" placeholder="Tinggi" @bind-Value="model.Dimensi.Tinggi"/>
-                 <ValidationMessage For="@(()=>model.Dimensi.Tinggi)"/>
-               </div>
-            </div>
-        </div>
+        <BSForm Model="model" OnValidSubmit="SaveAction">
+            <FluentValidator TValidator="BarangValidator" />
             <div class="mb-3">
-            <BSLabel>Deskripsi/Keterangan</BSLabel>
-            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Barang" @bind-Value="model.Description" />
-        </div>
-      
+                <BSLabel>Kategori</BSLabel>
+                <BSInput MarginBottom="Margins.Medium" InputType="InputType.Select" @bind-Value="model.KategoriId">
+                    <option value="">Pilih Kategori</option>
+                    @foreach (var item in categories)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </BSInput>
+            </div>
 
-       
-       
+            <div class="mb-3">
+                <BSLabel>Nama Barang</BSLabel>
+                <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Name" />
+                <ValidationMessage For="@(() => model.Name)" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Merek</BSLabel>
+                <BSInput InputType="InputType.Text" placeholder="Merek" @bind-Value="model.Merek" />
+                <ValidationMessage For="@(() => model.Merek)" />
+            </div>
 
-        <BSButton  IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync" >Close</BSButton>
-        <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
-    </BSForm>
+            <div class="mb-3">
+                <BSLabel>Berat Barang (Kg)</BSLabel>
+                <BSInput InputType="InputType.Number" placeholder="Berat Barang" @bind-Value="model.Berat" />
+                <ValidationMessage For="@(() => model.Berat)" />
+            </div>
+            <div class="mb-3">
+                <BSLabel>Dimensi (cm)</BSLabel>
+                <div style="display:flex; justify-content: space-between;">
+                    <div>
+                        <BSLabel style="font-size: 11px;">Panjang</BSLabel>
+                        <BSInput InputType="InputType.Number" placeholder="Panjang" @bind-Value="model.Dimensi.Panjang" />
+                        <ValidationMessage For="@(()=>model.Dimensi.Panjang)" />
+                    </div>
+                    <div>
+                        <BSLabel style="font-size: 11px;">Lebar</BSLabel>
+                        <BSInput InputType="InputType.Number" placeholder="lebar" @bind-Value="model.Dimensi.Lebar" />
+                        <ValidationMessage For="@(()=>model.Dimensi.Lebar)" />
+                    </div>
+                    <div>
+                        <BSLabel style="font-size: 11px;">Tinggi</BSLabel>
+                        <BSInput InputType="InputType.Number" placeholder="Tinggi" @bind-Value="model.Dimensi.Tinggi" />
+                        <ValidationMessage For="@(()=>model.Dimensi.Tinggi)" />
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <BSLabel>Deskripsi/Keterangan</BSLabel>
+                <BSInput InputType="InputType.TextArea" placeholder="Deskripis Barang" @bind-Value="model.Description" />
+            </div>
+
+
+
+
+
+            <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+            <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+        </BSForm>
     </Content>
-  
+
 </BSModal>
 
 
-<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog" ></Dialog>
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
 
 
 @inject IBarangService BarangService
 @inject IKategoriService KategoriService
 @inject IBlazorStrap _blazorStrap
 
-@code{
+@code {
 
     Dialog dialog;
     BSModal modal;
-    ICollection<Barang> datas{get;set;}
+    ICollection<Barang> datas { get; set; }
     IEnumerable<Kategori> categories;
-    Barang model = new Barang(){Name = string.Empty};
+    Barang model = new Barang() { Name = string.Empty };
 
     int? kategoriIdSelected;
 
-    protected override async Task OnInitializedAsync(){
+
+
+    Task AddNew()
+    {
+        model = new Barang();
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
         categories = await KategoriService.Get();
         datas = (await BarangService.Get()).ToList();
     }
 
-    void SelectedKategoriChanged(Kategori data){
+    void SelectedKategoriChanged(Kategori data)
+    {
         model.Kategori = data;
     }
 
-    async Task EditAction(Barang data){
-        model=data;
-        kategoriIdSelected=data.Kategori.Id;
+    async Task EditAction(Barang data)
+    {
+        model = data;
+        kategoriIdSelected = data.Kategori.Id;
         await modal.ShowAsync();
     }
 
-    async  Task DeleteAction(Barang data){
-        model = data;
-        dialog.Title="Delete"; 
-        dialog.Message="Yakin Hapus Data ? ";
-       await dialog.ShowAsync();
-    }
-
-
-    async void OnCloseDeleteDialog(bool result){
-       
-       if(result){
-        try  {
-                var deleted =await  BarangService.Delete(model.Id);
-                if(deleted)
-                {
-                datas.Remove(model);
-                StateHasChanged();
-                await _blazorStrap.Toaster.ShowMessage("Delete","Data Berhasil Dihapus", BSColor.Success);
-                return;
-            }
-            throw new SystemException("Data tidak berhasil dihapus !");
-       }catch(Exception ex){
-            await _blazorStrap.Toaster.ShowMessage("Error",ex.Message, BSColor.Danger);
-       }  
-       }  
-
-    }
-
-     async Task SaveAction()
+    async Task DeleteAction(Barang data)
     {
-        try {
+        model = data;
+        dialog.Title = "Delete";
+        dialog.Message = "Yakin Hapus Data ? ";
+        await dialog.ShowAsync();
+    }
 
-            if(model.Id<=0){
-                var result = await BarangService.Post(model);
-                ArgumentNullException.ThrowIfNull(result,"Data Tidak Berhasil Disimpain !");
-                datas.Add(result);
-            }else{
-                var updated = await BarangService.Put(model.Id,model);
+
+    async void OnCloseDeleteDialog(bool result)
+    {
+
+        if (result)
+        {
+            try
+            {
+                var deleted = await BarangService.Delete(model.Id);
+                if (deleted)
+                {
+                    datas.Remove(model);
+                    StateHasChanged();
+                    await _blazorStrap.Toaster.ShowMessage("Delete", "Data Berhasil Dihapus", BSColor.Success);
+                    return;
+                }
+                throw new SystemException("Data tidak berhasil dihapus !");
             }
-               await _blazorStrap.Toaster.ShowMessage("Success","Data Berhasil Disimpan !", BSColor.Success);
+            catch (Exception ex)
+            {
+                await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
+            }
+        }
+
+    }
+
+    async Task SaveAction()
+    {
+        try
+        {
+
+            if (model.Id <= 0)
+            {
+                var result = await BarangService.Post(model);
+                ArgumentNullException.ThrowIfNull(result, "Data Tidak Berhasil Disimpain !");
+                datas.Add(result);
+            }
+            else
+            {
+                var updated = await BarangService.Put(model.Id, model);
+            }
+            await _blazorStrap.Toaster.ShowMessage("Success", "Data Berhasil Disimpan !", BSColor.Success);
             await modal.HideAsync();
-            await InvokeAsync(()=> StateHasChanged());
-        }catch(Exception ex){
-           await _blazorStrap.Toaster.ShowMessage("Error",ex.Message,BSColor.Danger);
+            await InvokeAsync(() => StateHasChanged());
+        }
+        catch (Exception ex)
+        {
+            await _blazorStrap.Toaster.ShowMessage("Error", ex.Message, BSColor.Danger);
         }
     }
 
-public class BarangValidator : AbstractValidator<Barang>
+    public class BarangValidator : AbstractValidator<Barang>
     {
         public BarangValidator()
         {
             RuleFor(customer => customer.Name).NotEmpty().MaximumLength(100);
+            RuleFor(customer => customer.Merek).NotEmpty().MaximumLength(100);
+            RuleFor(customer => customer.Description).NotEmpty();
+            RuleFor(customer => customer.KategoriId).GreaterThan(0);
             RuleFor(customer => customer.Dimensi.Panjang).GreaterThan(0);
             RuleFor(customer => customer.Dimensi.Lebar).GreaterThan(0);
             RuleFor(customer => customer.Dimensi.Tinggi).GreaterThan(0);
-            RuleFor(customer => customer.Merek).NotEmpty().MaximumLength(100);
-            RuleFor(customer => customer.Kategori).NotNull();
             RuleFor(customer => customer.Berat).GreaterThan(0);
-            RuleFor(customer => customer.Description).NotEmpty();
         }
     }
 

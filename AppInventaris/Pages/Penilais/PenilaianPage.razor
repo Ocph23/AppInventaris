@@ -1,0 +1,140 @@
+@layout PenilaiLayout
+@page "/penilai/penilaian"
+@using BlazorStrap.Extensions.FluentValidation
+@using global::FluentValidation
+
+@inject NavigationManager nav
+
+<div style="display: flex;justify-content:space-between">
+    <BSLabel><h3>Data Penilaian</h3></BSLabel>
+    <BSButton style="height: 35px;" Size="Size.Small" OnClick="@(()=> nav.NavigateTo("/penilai/penilaian/0"))"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
+</div>
+<BSTable IsResponsive="true" IsStriped="true">
+    <BSTHead>
+        <BSTR>
+            <BSTD>#</BSTD>
+            <BSTD>Tanggal Pemeriksaan</BSTD>
+            <BSTD>Diperiksa Oleh :  </BSTD>
+            <BSTD>Status</BSTD>
+            <BSTD style="width: 130px;"></BSTD>
+        </BSTR>
+    </BSTHead>
+    <BSTBody>
+        @if(datas==null){
+            <BSLabel>Load .... !</BSLabel>
+        }
+        @foreach(var item in datas.Select((data,index)=>new {Data=data, index=index})){
+         <BSTR>
+            <BSTD>@(item.index+1)</BSTD>
+                    <BSTD>@item.Data.Tanggal</BSTD>
+                    <BSTD>@item.Data.Penilai.Nama</BSTD>
+                    <BSTD>@item.Data.StatusPenilaian.EnumToTitleCase()</BSTD>
+            <BSTD>
+                <BSButton OnClick="@(()=>EditAction(item.Data))"  Color="BSColor.Warning"><i class="bx bx-edit"></i></BSButton>
+                <BSButton OnClick="@(()=>DeleteAction(item.Data))" Color="BSColor.Danger"><i class="bx bx-trash"></i></BSButton>
+            </BSTD>
+        </BSTR>
+
+        }
+       
+    </BSTBody>
+</BSTable>
+
+<BSModal @ref="modal" IsCentered="true" DataId="editmodal">
+    <Header>Edit Penilaian</Header>
+    <Content>
+  <BSForm Model="model" OnValidSubmit="SaveAction">
+        <FluentValidator TValidator="PenilaianValidator" />
+        <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium"/>
+        <ValidationMessage For="@(() => model.Tanggal)" />
+        <BSInput InputType="InputType.TextArea" placeholder="Deskripis Penilaian" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium"/>
+
+        <BSButton  IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync" >Close</BSButton>
+        <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
+    </BSForm>
+    </Content>
+  
+</BSModal>
+
+
+<Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog" ></Dialog>
+
+
+@inject IPenilaianService PenilaianService
+@inject IBlazorStrap _blazorStrap
+
+@code{
+
+    Dialog dialog;
+    BSModal modal;
+    ICollection<Penilaian> datas{get;set;}
+
+    Penilaian model = new Penilaian();
+
+    protected override async Task OnInitializedAsync(){
+        datas = (await PenilaianService.Get()).ToList();
+    }
+
+
+    Task EditAction(Penilaian data){
+        nav.NavigateTo($"/penilai/penilaian/{data.Id}");
+        return Task.CompletedTask;
+    }
+
+    async  Task DeleteAction(Penilaian data){
+        model = data;
+        dialog.Title="Delete"; 
+        dialog.Message="Yakin Hapus Data ? ";
+       await dialog.ShowAsync();
+    }
+
+
+    async void OnCloseDeleteDialog(bool result){
+       
+       if(result){
+        try  {
+                var deleted =await  PenilaianService.Delete(model.Id);
+                if(deleted)
+                {
+                datas.Remove(model);
+                StateHasChanged();
+                await _blazorStrap.Toaster.ShowMessage("Delete","Data Berhasil Dihapus", BSColor.Success);
+                return;
+            }
+            throw new SystemException("Data tidak berhasil dihapus !");
+       }catch(Exception ex){
+            await _blazorStrap.Toaster.ShowMessage("Error",ex.Message, BSColor.Danger);
+       }  
+       }  
+
+    }
+
+     async Task SaveAction()
+    {
+        try {
+
+            if(model.Id<=0){
+                var result = await PenilaianService.Post(model);
+                ArgumentNullException.ThrowIfNull(result,"Data Tidak Berhasil Disimpain !");
+                datas.Add(result);
+            }else{
+                var updated = await PenilaianService.Put(model.Id,model);
+            }
+               await _blazorStrap.Toaster.ShowMessage("Success","Data Berhasil Disimpan !", BSColor.Success);
+            await modal.HideAsync();
+            await InvokeAsync(()=> StateHasChanged());
+        }catch(Exception ex){
+           await _blazorStrap.Toaster.ShowMessage("Error",ex.Message,BSColor.Danger);
+        }
+    }
+
+public class PenilaianValidator : AbstractValidator<Penilaian>
+    {
+        public PenilaianValidator()
+        {
+            RuleFor(customer => customer.Tanggal).NotEmpty();
+            RuleFor(customer => customer.Penilai).NotEmpty();
+        }
+    }
+
+}
