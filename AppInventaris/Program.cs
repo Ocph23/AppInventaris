@@ -18,12 +18,23 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Port
+
+if (builder.Environment.IsProduction())
+{
+    builder.WebHost.UseKestrel(serverOptions =>
+    {
+        serverOptions.ListenLocalhost(5022);
+    });
+}
+
 // Add services to the container.
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 //var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

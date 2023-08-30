@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AppInventaris.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230822222907_penilaian")]
-    partial class penilaian
+    [Migration("20230824012655__initial")]
+    partial class _initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
