@@ -125,7 +125,7 @@ else
                 {
                     Stream stream = file.OpenReadStream();
                     var filename = Path.GetRandomFileName() + ".png";
-                    var path = $"{env.WebRootPath}\\gambar\\{filename}";
+                    var path = $"{env.WebRootPath}/gambar/{filename}";
                     FileStream fs = File.Create(path);
                     await stream.CopyToAsync(fs);
                     stream.Close();

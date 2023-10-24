@@ -1,5 +1,6 @@
 @layout PenilaiLayout
 @page "/penilai/penilaian/{Id:int}"
+
 @using AppInventaris.Data;
 @using BlazorStrap.Extensions.FluentValidation
 @using Microsoft.AspNetCore.Identity;
@@ -21,14 +22,23 @@
         </div>
 
         <div class="mb-3">
-            <BSLabel>Dinilai Oleh : @(model.Penilai != null ? $"{model.Penilai.Nama}" : "")</BSLabel>
-            </div>
-        </BSForm>
-    </div>
+            <BSLabel style="font-size: 11px;">Dinilai Oleh</BSLabel>
+            @if (model.Penilai != null)
+            {
+                <BSInput IsDisabled=true InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Penilai.Nama" MarginBottom="Margins.Medium" />
+            }
+        </div>
+
+        <div class="mb-3">
+            <BSLabel style="font-size: 11px;">Status Penilaian</BSLabel>
+            <BSInput InputType="InputType.Text" IsDisabled=true placeholder="Nama" @bind-Value="model.StatusPenilaian" MarginBottom="Margins.Medium" />
+        </div>
+    </BSForm>
+</div>
 
 
-    <BSListGroup>
-        @if (datas == null)
+<BSListGroup>
+    @if (datas == null)
     {
         <BSLabel>Load .... !</BSLabel>
     }
@@ -37,10 +47,10 @@
     @foreach (var items in model.DataPenilaian.GroupBy(x => x.Barang.LokasiId))
     {
         <BSListGroupItem>
-           <div style="display:flex;justify-content:space-between">
+            <div style="display:flex;justify-content:space-between">
                 <h5> @items.FirstOrDefault().Barang.Lokasi.Name</h5>
                 <BSLink Target="collapse1" MarginEnd="Margins.Medium"><i style="font-size:2rem" class='bx bx-chevron-down'></i></BSLink>
-           </div>
+            </div>
             <BSCollapse DataId="collapse1">
                 <BSTable IsResponsive="true">
                     <BSTHead>
@@ -88,6 +98,37 @@
 
 
 
+<div style="margin-top:30px; display: flex;justify-content:space-between">
+    <BSLabel><h5>Catatan Penilaian</h5></BSLabel>
+</div>
+
+@if (model.Catatan != null)
+{
+    <BSTable IsResponsive="true">
+        <BSTHead>
+            <BSTR>
+                <BSTD>Tanggal</BSTD>
+                <BSTD>Pemberi Catatan</BSTD>
+                <BSTD>Catatan</BSTD>
+            </BSTR>
+        </BSTHead>
+        <BSTBody>
+
+            @foreach (var data in model.Catatan)
+            {
+                <BSTR>
+                    <BSTD>@data.Tanggal</BSTD>
+                    <BSTD>@data.PemberiCatatan.Nama</BSTD>
+                    <BSTD>@data.Catatan</BSTD>
+                </BSTR>
+            }
+
+        </BSTBody>
+    </BSTable>
+}
+
+
+
 
 <BSModal @ref="modal" IsCentered="true" DataId="editmodal">
     <Header>Edit Penilaian</Header>
@@ -96,7 +137,7 @@
             <FluentValidator TValidator="PenilaianValidator" />
             <BSInput InputType="InputType.Text" placeholder="Nama" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
             <ValidationMessage For="@(() => model.Tanggal)" />
-            <BSInput InputType="InputType.TextArea" placeholder="Deskripis Penilaian" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
+            <BSInput InputType="InputType.TextArea" placeholder="Deskripis/Catatan Penilaian" @bind-Value="model.Catatan" MarginBottom="Margins.Medium" />
 
             <BSButton IsSubmit="false" MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
             <BSButton IsSubmit="true" Color="BSColor.Primary">Simpan</BSButton>
@@ -131,21 +172,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var provider = await userStateprovider.GetAuthenticationStateAsync();
-        if (provider.User.Identity.IsAuthenticated)
-        {
-            model.Penilai = await userManager.FindByEmailAsync(provider.User.Identity.Name);
-        }
-
-        var itembarang = await itemBarangService.Get();
-        foreach (var item in itembarang)
-        {
-            model.DataPenilaian.Add(new PenilaianItem { Barang = item });
-        }
-
         if (Id > 0)
         {
             model = await penilaianService.Get(Id);
+        }
+        else
+        {
+            var provider = await userStateprovider.GetAuthenticationStateAsync();
+            if (provider.User.Identity.IsAuthenticated)
+            {
+                model.Penilai = await userManager.FindByEmailAsync(provider.User.Identity.Name);
+            }
+
+            var itembarang = await itemBarangService.Get();
+            foreach (var item in itembarang)
+            {
+                model.DataPenilaian.Add(new PenilaianItem { Barang = item });
+            }
         }
     }
 

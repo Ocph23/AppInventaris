@@ -6,7 +6,7 @@
 
 <div style="display: flex;justify-content:space-between">
     <BSLabel><h3>Data Lokasi</h3></BSLabel>
-    <BSButton style="height: 35px;" Size="Size.Small"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
+    <BSButton style="height: 35px;" Size="Size.Small" OnClick="CreateNew" Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
     <BSTHead>
@@ -106,7 +106,11 @@
 
     }
 
+    Task CreateNew(){
 
+          model = new Lokasi();  
+        return Task.CompletedTask;
+    }
 
    
     async Task SaveAction()

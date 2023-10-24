@@ -10,10 +10,10 @@
 <div class="col-md-4">
     <div style="display: flex;justify-content:space-between">
         <BSLabel><h5>Penilaian</h5></BSLabel>
-        <BSButton Target="editmodal" IsSubmit="true" OnClick="AddCatatan" Color="BSColor.Primary">Simpan</BSButton>
+        <BSButton IsSubmit="true" OnClick="AddCatatan" Color="BSColor.Primary">Simpan</BSButton>
     </div>
     <BSForm Model="model" OnValidSubmit="SaveAction">
-        <FluentValidator TValidator="PenilaianValidator"></FluentValidator>
+
         <div class="mb-3">
             <BSLabel style="font-size: 11px;">Tanggal Penilaian</BSLabel>
             <BSInput InputType="InputType.Text" IsDisabled=true placeholder="Nama" @bind-Value="model.Tanggal" MarginBottom="Margins.Medium" />
@@ -50,50 +50,53 @@
     {
         <BSLabel>Load .... !</BSLabel>
     }
-
-
-    @foreach (var items in model.DataPenilaian.GroupBy(x => x.Barang.LokasiId))
+    else
     {
-        <BSListGroupItem>
-            <div style="display:flex;justify-content:space-between">
-                <h5> @items.FirstOrDefault().Barang.Lokasi.Name</h5>
-                <BSLink Target="collapse1" MarginEnd="Margins.Medium"><i style="font-size:2rem" class='bx bx-chevron-down'></i></BSLink>
-            </div>
-            <BSCollapse DataId="collapse1">
-                <BSTable IsResponsive="true">
-                    <BSTHead>
-                        <BSTR>
-                            <BSTD>#</BSTD>
-                            <BSTD>Kode</BSTD>
-                            <BSTD>Barang</BSTD>
-                            <BSTD>Merek</BSTD>
-                            <BSTD>Kondis</BSTD>
-                            <BSTD style="width:200px">Penilaian</BSTD>
-                        </BSTR>
-                    </BSTHead>
-                    <BSTBody>
-
-                        @foreach (var data in items.Select((x, i) => new { Data = x, Index = i }))
-                        {
+        @foreach (var items in model.DataPenilaian.GroupBy(x => x.Barang.LokasiId))
+        {
+            <BSListGroupItem>
+                <div style="display:flex;justify-content:space-between">
+                    <h5> @items.FirstOrDefault().Barang.Lokasi.Name</h5>
+                    <BSLink Target="collapse1" MarginEnd="Margins.Medium"><i style="font-size:2rem" class='bx bx-chevron-down'></i></BSLink>
+                </div>
+                <BSCollapse DataId="collapse1">
+                    <BSTable IsResponsive="true">
+                        <BSTHead>
                             <BSTR>
-                                <BSTD>@(data.Index + 1)</BSTD>
-                                    <BSTD>@data.Data.Barang.Kode</BSTD>
-                                    <BSTD>@data.Data.Barang.Barang.Name</BSTD>
-                                    <BSTD>@data.Data.Barang.Barang.Merek</BSTD>
-                                    <BSTD>@data.Data.Barang.Kondisi</BSTD>
-                                    <BSTD>
-                                        @data.Data.StatusPenilaian.EnumToTitleCase()
-                                    </BSTD>
-                                </BSTR>
-                        }
+                                <BSTD>#</BSTD>
+                                <BSTD>Kode</BSTD>
+                                <BSTD>Barang</BSTD>
+                                <BSTD>Merek</BSTD>
+                                <BSTD>Kondis</BSTD>
+                                <BSTD style="width:200px">Penilaian</BSTD>
+                            </BSTR>
+                        </BSTHead>
+                        <BSTBody>
 
-                    </BSTBody>
-                </BSTable>
-            </BSCollapse>
-        </BSListGroupItem>
+                            @foreach (var data in items.Select((x, i) => new { Data = x, Index = i }))
+                            {
+                                <BSTR>
+                                    <BSTD>@(data.Index + 1)</BSTD>
+                                        <BSTD>@data.Data.Barang.Kode</BSTD>
+                                        <BSTD>@data.Data.Barang.Barang.Name</BSTD>
+                                        <BSTD>@data.Data.Barang.Barang.Merek</BSTD>
+                                        <BSTD>@data.Data.Barang.Kondisi</BSTD>
+                                        <BSTD>
+                                            @data.Data.StatusPenilaian.EnumToTitleCase()
+                                        </BSTD>
+                                    </BSTR>
+                            }
+
+                        </BSTBody>
+                    </BSTable>
+                </BSCollapse>
+            </BSListGroupItem>
 
 
+        }
     }
+
+
 
 </BSListGroup>
 
@@ -128,15 +131,11 @@
         </BSTBody>
     </BSTable>
 }
-
-
-
-
 <BSModal @ref="modal" IsCentered="true" DataId="editmodal">
     <Header>Catatan</Header>
     <Content>
         <BSForm Model="catatan" OnValidSubmit="SaveAction">
-            <FluentValidator TValidator="PenilaianValidator" />
+            <FluentValidator TValidator="PenilaianValidator"></FluentValidator>
             <BSInput InputType="InputType.Text" IsDisabled=true placeholder="Nama" @bind-Value="catatan.Tanggal" MarginBottom="Margins.Medium" />
             <ValidationMessage For="@(() => model.Tanggal)" />
             <BSInput InputType="InputType.TextArea" placeholder="Catatan" @bind-Value="catatan.Catatan" MarginBottom="Margins.Medium" />
@@ -146,7 +145,6 @@
     </Content>
 
 </BSModal>
-
 
 <Dialog @ref="dialog" OkText="Delete" OnCloseCallback="OnCloseDeleteDialog"></Dialog>
 
@@ -169,6 +167,8 @@
     BSModal modal;
     ICollection<Penilaian> datas { get; set; } = Enumerable.Empty<Penilaian>().ToList();
 
+
+    PenilaianValidator penilaianValidator = new PenilaianValidator();
     Penilaian model = new Penilaian();
     string PenilaiName = string.Empty;
 
@@ -176,10 +176,10 @@
 
     CatatanPenilaian catatan = new CatatanPenilaian();
 
-    Task AddCatatan()
+    async Task AddCatatan()
     {
-        catatan = new CatatanPenilaian { Tanggal = DateTime.UtcNow, PemberiCatatan = user };
-        return Task.CompletedTask;
+        catatan = new CatatanPenilaian { Tanggal = DateTime.UtcNow, PemberiCatatan = user, Catatan = string.Empty };
+        await modal.ShowAsync();
     }
     protected override async Task OnInitializedAsync()
     {
@@ -272,6 +272,7 @@
         public PenilaianValidator()
         {
             RuleFor(customer => customer.Tanggal).NotEmpty();
+            RuleFor(customer => customer.Catatan).NotEmpty();
         }
     }
 

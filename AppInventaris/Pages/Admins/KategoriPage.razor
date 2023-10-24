@@ -6,7 +6,7 @@
 
 <div style="display: flex;justify-content:space-between">
     <BSLabel><h3>Data Kategori</h3></BSLabel>
-    <BSButton style="height: 35px;" Size="Size.Small"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
+    <BSButton style="height: 35px;" Size="Size.Small" OnClick="CreateNew"  Target="editmodal" Color="BSColor.Primary" ><i class="bx bx-plus"></i>Add</BSButton>
 </div>
 <BSTable IsResponsive="true" IsStriped="true">
     <BSTHead>
@@ -104,6 +104,11 @@
        }  
        }  
 
+    }
+
+
+    async Task CreateNew(){
+        model= new Kategori();
     }
 
      async Task SaveAction()
